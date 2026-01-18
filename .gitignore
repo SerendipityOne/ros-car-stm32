@@ -1,0 +1,37 @@
+# Build artifacts
+build/
+*.map
+*.elf
+*.hex
+*.bin
+
+# Debug files
+*.lst
+*.axf
+*.crf
+*.o
+*.d
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# IDE specific
+.vscode/settings.json
+.settings/
+
+# STM32 files
+*.iex
+*.sct
+*.tra
+*.htm
+*.lst
+*.log
+*.bak
+*.opt
+*.dep
+
+# Other temp files
+.DS_Store
+Thumbs.db
