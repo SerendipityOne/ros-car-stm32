@@ -82,19 +82,19 @@ typedef volatile struct {
     float out;             // 输出值
     float OutLimitHigh;    // 输出上限
     float OutLimitLow;     // 输出下限
-} pid_t;
+} PID_t;
 
 // *****************************************************************************
 extern MPU_t MPU6050;
 extern Ange_t Angle;
 
-extern pid_t pidRateX;
-extern pid_t pidRateY;
-extern pid_t pidRateZ;
+extern PID_t pidRateX;
+extern PID_t pidRateY;
+extern PID_t pidRateZ;
 
-extern pid_t pidPitch;
-extern pid_t pidRoll;
-extern pid_t pidYaw;
+extern PID_t pidPitch;
+extern PID_t pidRoll;
+extern PID_t pidYaw;
 
 extern int16_t motor_pwm_value[4];
 

@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "gpio.h"
-#include "stm32f4xx_hal.h"
 
 /**
   * 数据存储格式：

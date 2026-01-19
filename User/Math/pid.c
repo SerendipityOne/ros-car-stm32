@@ -11,7 +11,7 @@
  * @param len PID控制器数组的长度，表示要重置的控制器数量
  * @return 无返回值
  */
-void pidRest(pid_t** pid, const uint8_t len) {
+void pidRest(PID_t** pid, const uint8_t len) {
     uint8_t i;
     for (i = 0; i < len; i++) {
         pid[i]->integ = 0;
@@ -29,7 +29,7 @@ void pidRest(pid_t** pid, const uint8_t len) {
  * 该函数根据当前测量值与期望值的误差，计算PID控制器的输出。
  * 包括比例、积分、微分三个环节的计算，并更新相关状态变量。
  */
-void pidUpdate(pid_t* pid, const float dt) {
+void pidUpdate(PID_t* pid, const float dt) {
     float error;
     float deriv;
 
@@ -57,7 +57,7 @@ void pidUpdate(pid_t* pid, const float dt) {
  * @param pidAngE 指向外环PID控制器对象的指针（角度环）
  * @param dt 控制周期时间间隔
  */
-void CascadePID(pid_t* pidRate, pid_t* pidAngE, const float dt)  //串级PID
+void CascadePID(PID_t* pidRate, PID_t* pidAngE, const float dt)  //串级PID
 {
     pidUpdate(pidAngE, dt);  //先计算外环
     pidRate->desired = pidAngE->out;

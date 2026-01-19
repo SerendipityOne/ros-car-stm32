@@ -4,12 +4,12 @@
 MPU_t MPU6050;
 Ange_t Angle;
 
-pid_t pidRateX;
-pid_t pidRateY;
-pid_t pidRateZ;
-pid_t pidPitch;
-pid_t pidRoll;
-pid_t pidYaw;
+PID_t pidRateX;
+PID_t pidRateY;
+PID_t pidRateZ;
+PID_t pidPitch;
+PID_t pidRoll;
+PID_t pidYaw;
 
 int16_t motor_pwm_value[4];
 

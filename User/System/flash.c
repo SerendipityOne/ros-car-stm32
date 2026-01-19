@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include "stm32f4xx_hal.h"
+#include "flash.h"
 
 #define MPU_FLASH_ADDR   ((uint32_t)0x080E0000)  // F407: Sector 11 start
 #define MPU_FLASH_SECTOR FLASH_SECTOR_11

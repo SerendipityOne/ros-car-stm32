@@ -75,10 +75,12 @@ endif
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Src/freertos.c \
 Core/Src/gpio.c \
 Core/Src/i2c.c \
 Core/Src/main.c \
 Core/Src/stm32f4xx_hal_msp.c \
+Core/Src/stm32f4xx_hal_timebase_tim.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/syscalls.c \
 Core/Src/sysmem.c \
@@ -108,6 +110,16 @@ Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
+Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c \
+Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
+Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
+Middlewares/Third_Party/FreeRTOS/Source/list.c \
+Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
+Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
+Middlewares/Third_Party/FreeRTOS/Source/queue.c \
+Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c \
+Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
+Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 USB_DEVICE/App/usb_device.c \
 USB_DEVICE/App/usbd_cdc_if.c \
 USB_DEVICE/App/usbd_desc.c \
@@ -123,7 +135,11 @@ User/Math/kalman.c \
 User/Math/my_math.c \
 User/Math/pid.c \
 User/System/delay.c \
-User/System/flash.c
+User/System/flash.c \
+micro_ros_stm32cubemx_utils/extra_sources/custom_memory_manager.c \
+micro_ros_stm32cubemx_utils/extra_sources/microros_allocators.c \
+micro_ros_stm32cubemx_utils/extra_sources/microros_time.c \
+micro_ros_stm32cubemx_utils/extra_sources/microros_transports/usb_cdc_transport.c
 
 
 CXX_SOURCES = \
@@ -223,6 +239,9 @@ C_INCLUDES =  \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc \
+-IMiddlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \
+-IMiddlewares/Third_Party/FreeRTOS/Source/include \
+-IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 -IUSB_DEVICE/App \
 -IUSB_DEVICE/Target \
 -IUser/Application \
@@ -231,7 +250,8 @@ C_INCLUDES =  \
 -IUser/Hardware/OLED \
 -IUser/Header \
 -IUser/Math \
--IUser/System
+-IUser/System \
+-Imicro_ros_stm32cubemx_utils/microros_static_library/libmicroros/microros_include
 
 
 
@@ -269,7 +289,7 @@ LIBDIR = \
 
 
 # Additional LD Flags from config file
-ADDITIONALLDFLAGS = -Wl,--print-memory-usage -specs=nano.specs 
+ADDITIONALLDFLAGS = -Wl,--print-memory-usage -specs=nano.specs micro_ros_stm32cubemx_utils/microros_static_library/libmicroros/libmicroros.a 
 
 LDFLAGS = $(MCU) $(ADDITIONALLDFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIRECTORY)/$(TARGET).map,--cref -Wl,--gc-sections
 
@@ -381,6 +401,14 @@ clean:
 # custom makefile rules
 #######################################
 
+
+
+#######################################
+# print_cflags
+#######################################
+print_cflags: 
+	@echo $(CFLAGS)
+      
 	
 #######################################
 # dependencies
