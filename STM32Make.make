@@ -125,6 +125,7 @@ USB_DEVICE/App/usbd_cdc_if.c \
 USB_DEVICE/App/usbd_desc.c \
 USB_DEVICE/Target/usbd_conf.c \
 User/Application/init.c \
+User/Application/my_task.c \
 User/Hardware/LED.c \
 User/Hardware/MPU6050/MPU6050.c \
 User/Hardware/Motor.c \

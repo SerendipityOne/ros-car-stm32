@@ -2,7 +2,6 @@
 #define __INIT_H
 
 void All_Init(void);
-void NVIC_Init(void);
-void PID_Param_Init(void);
+void ALL_Task(void);
 
 #endif  // !__INIT_H
