@@ -21,10 +21,10 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "usb_device.h"
-#include "usbd_core.h"
-#include "usbd_desc.h"
 #include "usbd_cdc.h"
 #include "usbd_cdc_if.h"
+#include "usbd_core.h"
+#include "usbd_desc.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -61,33 +61,47 @@ USBD_HandleTypeDef hUsbDeviceFS;
   * Init USB device Library, add supported class and start the library
   * @retval None
   */
-void MX_USB_DEVICE_Init(void)
-{
-  /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
+void MX_USB_DEVICE_Init(void) {
+    /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
+	// 模拟USB设备重新插拔
+    GPIO_InitTypeDef GPIO_InitStruct;
+    /* GPIO Ports Clock Enable */
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
+    /*Configure GPIO pin : PA12 */
+    GPIO_InitStruct.Pin = GPIO_PIN_12;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /* USER CODE END USB_DEVICE_Init_PreTreatment */
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12,
+                      GPIO_PIN_RESET);
+    HAL_Delay(65);
+    // 先把PA12拉低再拉高，利用D+模拟USB的拔插动作
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
+    HAL_Delay(65);
 
-  /* Init Device Library, add supported class and start the library. */
-  if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK)
-  {
-    Error_Handler();
-  }
-  if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK)
-  {
-    Error_Handler();
-  }
-  if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS) != USBD_OK)
-  {
-    Error_Handler();
-  }
-  if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
-  {
-    Error_Handler();
-  }
+    /* USER CODE END USB_DEVICE_Init_PreTreatment */
 
-  /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
+    /* Init Device Library, add supported class and start the library. */
+    if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK) {
+        Error_Handler();
+    }
+    if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK) {
+        Error_Handler();
+    }
+    if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS) != USBD_OK) {
+        Error_Handler();
+    }
+    if (USBD_Start(&hUsbDeviceFS) != USBD_OK) {
+        Error_Handler();
+    }
 
-  /* USER CODE END USB_DEVICE_Init_PostTreatment */
+    /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
+
+    /* USER CODE END USB_DEVICE_Init_PostTreatment */
 }
 
 /**
@@ -97,4 +111,3 @@ void MX_USB_DEVICE_Init(void)
 /**
   * @}
   */
-

@@ -13,9 +13,6 @@ PID_t pidYaw;
 
 int16_t motor_pwm_value[4];
 
-void All_Init(void) {
-}
-
 void ALL_Task(void) {
     StartLEDTask();
 	UsbProto_OS_Init();  // 启动USB协议收发任务
