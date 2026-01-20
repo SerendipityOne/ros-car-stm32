@@ -49,8 +49,6 @@ assemblyFlags:
 
 linkerFlags:
   - -Wl,--print-memory-usage
-  # micro-ros static library
-  - micro_ros_stm32cubemx_utils/microros_static_library/libmicroros/libmicroros.a
 
 # libraries to be included. The -l prefix to the library will be automatically added.
 libraries:

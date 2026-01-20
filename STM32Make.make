@@ -126,6 +126,7 @@ USB_DEVICE/App/usbd_desc.c \
 USB_DEVICE/Target/usbd_conf.c \
 User/Application/init.c \
 User/Application/my_task.c \
+User/Application/usb_proto.c \
 User/Hardware/LED.c \
 User/Hardware/MPU6050/MPU6050.c \
 User/Hardware/Motor.c \
@@ -136,11 +137,7 @@ User/Math/kalman.c \
 User/Math/my_math.c \
 User/Math/pid.c \
 User/System/delay.c \
-User/System/flash.c \
-micro_ros_stm32cubemx_utils/extra_sources/custom_memory_manager.c \
-micro_ros_stm32cubemx_utils/extra_sources/microros_allocators.c \
-micro_ros_stm32cubemx_utils/extra_sources/microros_time.c \
-micro_ros_stm32cubemx_utils/extra_sources/microros_transports/usb_cdc_transport.c
+User/System/flash.c
 
 
 CXX_SOURCES = \
@@ -251,8 +248,7 @@ C_INCLUDES =  \
 -IUser/Hardware/OLED \
 -IUser/Header \
 -IUser/Math \
--IUser/System \
--Imicro_ros_stm32cubemx_utils/microros_static_library/libmicroros/microros_include
+-IUser/System
 
 
 
@@ -290,7 +286,7 @@ LIBDIR = \
 
 
 # Additional LD Flags from config file
-ADDITIONALLDFLAGS = -Wl,--print-memory-usage -specs=nano.specs micro_ros_stm32cubemx_utils/microros_static_library/libmicroros/libmicroros.a 
+ADDITIONALLDFLAGS = -Wl,--print-memory-usage -specs=nano.specs 
 
 LDFLAGS = $(MCU) $(ADDITIONALLDFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIRECTORY)/$(TARGET).map,--cref -Wl,--gc-sections
 
@@ -402,14 +398,6 @@ clean:
 # custom makefile rules
 #######################################
 
-
-
-#######################################
-# print_cflags
-#######################################
-print_cflags: 
-	@echo $(CFLAGS)
-      
 	
 #######################################
 # dependencies

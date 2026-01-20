@@ -23,6 +23,9 @@
 
 /* USER CODE BEGIN INCLUDE */
 
+// Bridge USB CDC packets into our custom framing protocol parser
+#include "usb_proto.h"
+
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -155,6 +158,7 @@ static int8_t CDC_Init_FS(void)
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 3 */
 }
@@ -261,6 +265,12 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
+  // Feed received bytes into protocol layer (ring buffer + RX task notify)
+  // NOTE: This callback is typically executed from USB IRQ context.
+  // Make sure USB interrupt priority is set to a value compatible with FreeRTOS
+  // (i.e., not higher than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY).
+  UsbProto_RxBytesFromISR(Buf, (uint16_t)(*Len));
+
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
@@ -311,6 +321,9 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
   UNUSED(Buf);
   UNUSED(Len);
   UNUSED(epnum);
+
+  // Notify protocol TX task that one IN transfer finished
+  UsbProto_OnTxCompleteFromISR();
   /* USER CODE END 13 */
   return result;
 }

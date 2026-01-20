@@ -18,4 +18,5 @@ void All_Init(void) {
 
 void ALL_Task(void) {
     StartLEDTask();
+	UsbProto_OS_Init();  // 启动USB协议收发任务
 }

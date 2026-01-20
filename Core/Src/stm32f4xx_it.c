@@ -193,6 +193,7 @@ void TIM1_UP_TIM10_IRQHandler(void)
   * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
   */
 void TIM8_TRG_COM_TIM14_IRQHandler(void)
+
 {
   /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 0 */
 

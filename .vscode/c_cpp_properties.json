@@ -21,8 +21,7 @@
         "User/Hardware/OLED",
         "User/Header",
         "User/Math",
-        "User/System",
-        "micro_ros_stm32cubemx_utils/microros_static_library/libmicroros/microros_include"
+        "User/System"
       ],
       "defines": [
         "STM32F407xx",
