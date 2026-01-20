@@ -8,6 +8,7 @@
 #include "flash.h"
 #include "init.h"
 #include "my_task.h"
+#include "usb_proto.h"
 
 
 #endif  // !__ALL_USER_DEFINE_H
