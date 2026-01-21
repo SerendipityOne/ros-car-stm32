@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "task_shared.h"
 #include "usb_device.h"
 #include "usbd_core.h"
 /* USER CODE END Includes */
@@ -118,6 +119,7 @@ void StartDefaultTask(void* argument) {
 
     /* USER CODE BEGIN StartDefaultTask */
     ALL_Task();
+    START_TaskCreate();
     /* Infinite loop */
     for (;;) {
         osDelay(1);

@@ -1,9 +1,12 @@
-#include "my_task.h"
+#include "LED.h"
+#include "task_shared.h"
+
+// 任务优先级定义
+#define LED_TASK_PRIO (tskIDLE_PRIORITY + 2)
 
 /**
  * @brief LED闪烁任务函数
  * @param pvParameters 任务参数
- * @retval None
  */
 static void LED_Task(void* pvParameters) {
     // 初始化LED
@@ -18,10 +21,8 @@ static void LED_Task(void* pvParameters) {
 
 /**
  * @brief 启动LED任务
- * @param None
- * @retval None
  */
-void StartLEDTask(void) {
+void LED_TaskCreate(void) {
     // 创建LED任务
     xTaskCreate(
         LED_Task,                      // 任务函数

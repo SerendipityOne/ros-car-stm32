@@ -76,7 +76,7 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef* Hi2c) {
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef* Hi2c) {
     if (Hi2c->Instance != I2C1) return;
     HAL_I2C_DeInit(Hi2c);
-    HAL_Delay(2);
+    delay_ms(2);
     HAL_I2C_Init(Hi2c);
     MPU_GetAccGyro();
 }

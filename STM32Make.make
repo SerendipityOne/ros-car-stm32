@@ -125,7 +125,6 @@ USB_DEVICE/App/usbd_cdc_if.c \
 USB_DEVICE/App/usbd_desc.c \
 USB_DEVICE/Target/usbd_conf.c \
 User/Application/init.c \
-User/Application/my_task.c \
 User/Application/usb_proto.c \
 User/Hardware/LED.c \
 User/Hardware/MPU6050/MPU6050.c \
@@ -137,7 +136,9 @@ User/Math/kalman.c \
 User/Math/my_math.c \
 User/Math/pid.c \
 User/System/delay.c \
-User/System/flash.c
+User/System/flash.c \
+User/Tasks/task_led.c \
+User/Tasks/task_shared.c
 
 
 CXX_SOURCES = \
@@ -248,7 +249,8 @@ C_INCLUDES =  \
 -IUser/Hardware/OLED \
 -IUser/Header \
 -IUser/Math \
--IUser/System
+-IUser/System \
+-IUser/Tasks
 
 
 

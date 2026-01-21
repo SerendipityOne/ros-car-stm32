@@ -27,7 +27,7 @@
 #include "usbd_desc.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "delay.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN PV */
@@ -78,10 +78,10 @@ void MX_USB_DEVICE_Init(void) {
 
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12,
                       GPIO_PIN_RESET);
-    HAL_Delay(65);
+    delay_ms(65);
     // 先把PA12拉低再拉高，利用D+模拟USB的拔插动作
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
-    HAL_Delay(65);
+    delay_ms(65);
 
     /* USER CODE END USB_DEVICE_Init_PreTreatment */
 

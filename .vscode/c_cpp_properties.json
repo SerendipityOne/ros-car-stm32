@@ -21,7 +21,8 @@
         "User/Hardware/OLED",
         "User/Header",
         "User/Math",
-        "User/System"
+        "User/System",
+        "User/Tasks"
       ],
       "defines": [
         "STM32F407xx",

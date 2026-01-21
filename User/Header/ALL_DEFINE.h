@@ -7,9 +7,9 @@
 #include "delay.h"
 #include "flash.h"
 #include "init.h"
-#include "my_task.h"
 #include "usb_proto.h"
 #include "OLED.h"
+#include "task_shared.h"
 
 
 #endif  // !__ALL_USER_DEFINE_H
