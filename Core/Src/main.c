@@ -96,7 +96,9 @@ int main(void) {
     MX_TIM5_Init();
     MX_TIM8_Init();
     /* USER CODE BEGIN 2 */
-	
+    ALL_Init();
+    OLED_Printf(0, 0, OLED_8X16, "Hello World!");
+    OLED_Update();
     /* USER CODE END 2 */
 
     /* Init scheduler */

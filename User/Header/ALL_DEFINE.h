@@ -9,6 +9,7 @@
 #include "init.h"
 #include "my_task.h"
 #include "usb_proto.h"
+#include "OLED.h"
 
 
 #endif  // !__ALL_USER_DEFINE_H

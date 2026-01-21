@@ -3,4 +3,6 @@
 
 void ALL_Task(void);
 
+void ALL_Init(void);
+
 #endif  // !__INIT_H

@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "gpio.h"
+#include "delay.h"
 
 /**
   * 数据存储格式：
@@ -98,6 +99,7 @@ void OLED_W_SCL(uint8_t BitValue) {
 
     /*如果单片机速度过快，可在此添加适量延时，以避免超出I2C通信的最大速度*/
     //...
+	delay_us(5);
 }
 
 /**
@@ -114,6 +116,7 @@ void OLED_W_SDA(uint8_t BitValue) {
 
     /*如果单片机速度过快，可在此添加适量延时，以避免超出I2C通信的最大速度*/
     //...
+	delay_us(5);
 }
 
 /**
@@ -141,7 +144,13 @@ void OLED_GPIO_Init(void) {
     // GPIO_Init(GPIOB, &GPIO_InitStructure);
     // GPIO_InitStructure.GPIO_Pin = GPIO_PIN_9;
     // GPIO_Init(GPIOB, &GPIO_InitStructure);
-    MX_GPIO_Init();
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = OLED_SCL_Pin | OLED_SDA_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    // MX_GPIO_Init();
 
     /*释放SCL和SDA*/
     OLED_W_SCL(1);
