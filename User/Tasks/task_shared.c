@@ -2,6 +2,7 @@
 #include "FreeRTOS.h"
 #include "main.h"
 #include "task.h"
+#include "usb_proto.h"
 
 /* Start任务配置 */
 #define START_STACK_SIZE 512 /* 初始化需要较大栈空间 */
@@ -18,6 +19,7 @@ static StaticTask_t start_tcb;
 static void start_entry(void* arg) {
     // OLED_TaskCreate();
     LED_TaskCreate();
+	UsbProto_TaskCreate(); // 启动USB
 
     vTaskDelete(NULL);
 }

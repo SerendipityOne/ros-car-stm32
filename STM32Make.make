@@ -138,6 +138,7 @@ User/Math/pid.c \
 User/System/delay.c \
 User/System/flash.c \
 User/Tasks/task_led.c \
+User/Tasks/task_oled.c \
 User/Tasks/task_shared.c
 
 

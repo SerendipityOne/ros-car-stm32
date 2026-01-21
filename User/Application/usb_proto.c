@@ -265,7 +265,7 @@ static void UsbProto_TxTask(void* arg) {
 
 // ===================== 对外 API =====================
 // 初始化USB协议相关的OS对象（队列、信号量和任务）
-void UsbProto_OS_Init(void) {
+void UsbProto_TaskCreate(void) {
     // 创建发送队列
     s_txq = xQueueCreate(TX_QUEUE_DEPTH, sizeof(TxItem));
     // 创建发送完成信号量

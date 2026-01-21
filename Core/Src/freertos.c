@@ -118,7 +118,6 @@ void StartDefaultTask(void* argument) {
     MX_USB_DEVICE_Init();
 
     /* USER CODE BEGIN StartDefaultTask */
-    ALL_Task();
     START_TaskCreate();
     /* Infinite loop */
     for (;;) {
