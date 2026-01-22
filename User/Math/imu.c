@@ -40,8 +40,8 @@ void imu_rest(void) {
   GyroIntegError.x = 0;
   GyroIntegError.y = 0;
   GyroIntegError.z = 0;
-  Angle.pitch = 0;
-  Angle.roll = 0;
+  g_angle.pitch = 0;
+  g_angle.roll = 0;
 }
 
 void GetAngle(const MPU_t* mpu, Ange_t* ange, float dt) {

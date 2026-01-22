@@ -2,7 +2,7 @@
 #include "ALL_DEFINE.h"
 
 MPU_t g_mpu6050_data;
-Ange_t Angle;
+Ange_t g_angle;
 
 PID_t pidRateX;
 PID_t pidRateY;

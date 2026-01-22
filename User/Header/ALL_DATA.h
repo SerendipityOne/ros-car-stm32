@@ -86,7 +86,7 @@ typedef volatile struct {
 
 // *****************************************************************************
 extern MPU_t g_mpu6050_data;
-extern Ange_t Angle;
+extern Ange_t g_angle;
 
 extern PID_t pidRateX;
 extern PID_t pidRateY;

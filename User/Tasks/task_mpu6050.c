@@ -1,9 +1,10 @@
 #include "MPU6050.h"
 #include "task_shared.h"
+#include "imu.h"
 
 /* 任务优先级与周期（可按需修改） */
 #define MPU6050_TASK_PRIO      (tskIDLE_PRIORITY + 3)
-#define MPU6050_TASK_PERIOD_MS (10U) /* 100Hz */
+#define MPU6050_TASK_PERIOD_MS (3U) /* 300Hz */
 
 static void MPU6050_Task(void* pvParameters) {
     (void)pvParameters;
@@ -23,6 +24,7 @@ static void MPU6050_Task(void* pvParameters) {
         }
 
         (void)MPU_GetData();
+		(void)GetAngle(&g_mpu6050_data, &g_angle, 0.003f);
 		
         if (g_mpu_mutex) {
             xSemaphoreGive(g_mpu_mutex);
