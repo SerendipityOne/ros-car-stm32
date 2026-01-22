@@ -31,7 +31,7 @@ static void oled_entry(void* arg) {
                     break;
                 case OLED_SRC_MPU:
                     OLED_Printf(0, 16, OLED_6X8, "MPU6050 TASK Running");
-                    OLED_Printf(0, 24, OLED_6X8, "p,r,y:%4.2f,%4.2f,%4.2f", g_angle.pitch, g_angle.roll, g_angle.yaw);
+                    // OLED_Printf(0, 24, OLED_6X8, "p,r,y:%4.2f,%4.2f,%4.2f", g_angle.pitch, g_angle.roll, g_angle.yaw);
                     break;
                 default:
                     // OLED_Printf(0, 24, OLED_6X8, "UNKNOWN");

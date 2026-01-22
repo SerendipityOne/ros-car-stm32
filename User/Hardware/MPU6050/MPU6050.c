@@ -96,7 +96,7 @@ HAL_StatusTypeDef MPU6050_Init(void) {
     res = MPU6050_ReadRegs(MPU_WHO_AM_I, &who, 1);
 
     /* 从Flash读取零偏*/
-    // MpuOffset_Read(MpuOffset);
+    MpuOffset_Read(MpuOffset);
 
     /* 自动开始一次DMA采样（双缓冲） */
     if (res == HAL_OK && who == MPU_ID) {
