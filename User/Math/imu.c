@@ -61,7 +61,7 @@ void GetAngle(const MPU_t* mpu, Ange_t* ange, float dt) {
   Gravity.y = 2 * (NumQ.q0 * NumQ.q1 + NumQ.q2 * NumQ.q3);
   Gravity.z = 1 - 2 * (NumQ.q1 * NumQ.q1 + NumQ.q2 * NumQ.q2);
   // 加速度归一化
-  NormAcc = Q_rsqrt(squa(MPU6050.accX) + squa(MPU6050.accY) + squa(MPU6050.accZ));
+  NormAcc = Q_rsqrt(squa(g_mpu6050_data.accX) + squa(g_mpu6050_data.accY) + squa(g_mpu6050_data.accZ));
 
   Acc.x = mpu->accX * NormAcc;
   Acc.y = mpu->accY * NormAcc;

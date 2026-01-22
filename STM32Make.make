@@ -75,6 +75,7 @@ endif
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Src/dma.c \
 Core/Src/freertos.c \
 Core/Src/gpio.c \
 Core/Src/i2c.c \
@@ -138,6 +139,7 @@ User/Math/pid.c \
 User/System/delay.c \
 User/System/flash.c \
 User/Tasks/task_led.c \
+User/Tasks/task_mpu6050.c \
 User/Tasks/task_oled.c \
 User/Tasks/task_shared.c
 

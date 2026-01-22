@@ -1,7 +1,7 @@
 #include "ALL_DATA.h"
 #include "ALL_DEFINE.h"
 
-MPU_t MPU6050;
+MPU_t g_mpu6050_data;
 Ange_t Angle;
 
 PID_t pidRateX;
@@ -16,4 +16,5 @@ int16_t motor_pwm_value[4];
 void ALL_Init(void) {
     OLED_Init();
     Motor_Init();
+    // MPU6050_Init(); // 在MPU6050_Task中初始化
 }

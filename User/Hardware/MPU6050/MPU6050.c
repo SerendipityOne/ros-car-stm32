@@ -1,4 +1,5 @@
 #include "MPU6050.h"
+#include "delay.h"
 #include "flash.h"
 #include "i2c.h"
 #include "kalman.h"
@@ -12,13 +13,13 @@
 //**************************************************************
 static int16_t MpuOffset[6] = {0};
 
-static volatile int16_t* mpu = (int16_t*)&MPU6050;
+static volatile int16_t* mpu = (int16_t*)&g_mpu6050_data;
 //**************************************************************
-// åŒç¼“å†²ä¸çŠ¶æ€
-static uint8_t ImuBuf[2][FRAME_LEN];   /* åŒç¼“å†² */
-static volatile uint8_t CurIndex = 0;  /* å½“å‰DMAå†™å…¥ç¼“å†²ç´¢å¼• 0/1 */
-static volatile uint8_t HasFrame = 0;  /* æ˜¯å¦å®Œæˆè¿‡è‡³å°‘ä¸€å¸§ */
-static volatile uint32_t FrameSeq = 0; /* å®Œæˆå¸§è®¡æ•° */
+// Ë«»º³åÓë×´Ì¬
+static uint8_t ImuBuf[2][FRAME_LEN];   /* Ë«»º³å */
+static volatile uint8_t CurIndex = 0;  /* µ±Ç°DMAĞ´Èë»º³åË÷Òı 0/1 */
+static volatile uint8_t HasFrame = 0;  /* ÊÇ·ñÍê³É¹ıÖÁÉÙÒ»Ö¡ */
+static volatile uint32_t FrameSeq = 0; /* Íê³ÉÖ¡¼ÆÊı */
 //**************************************************************
 static HAL_StatusTypeDef MPU6050_WriteReg(uint8_t reg, uint8_t val) {
     return HAL_I2C_Mem_Write(&hi2c1, MPU_ADDR, reg, MPU_REG_ADDR_SIZE, &val, 1, MPU_I2C_TIMEOUT);
@@ -28,51 +29,95 @@ static HAL_StatusTypeDef MPU6050_ReadRegs(uint8_t reg, uint8_t* data, uint16_t l
     return HAL_I2C_Mem_Read(&hi2c1, MPU_ADDR, reg, MPU_REG_ADDR_SIZE, data, len, MPU_I2C_TIMEOUT);
 }
 
+/**
+ * @brief I2C×ÜÏß»Ö¸´º¯Êı£¬ÓÃÓÚ½â¾öI2C×ÜÏß±»´ÓÉè±¸Ëø¶¨µÄÎÊÌâ
+ * 
+ * µ±I2C×ÜÏßÉÏµÄÄ³¸ö´ÓÉè±¸Òì³£µ¼ÖÂ×ÜÏß×èÈûÊ±£¨ÈçSDAÏß±»À­µÍ£©£¬
+ * ¸Ãº¯ÊıÍ¨¹ı½«GPIOÇĞ»»µ½ÆÕÍ¨Êä³öÄ£Ê½£¬Ç¿ÖÆ²úÉúÊ±ÖÓÂö³åºÍÍ£Ö¹Ìõ¼şÀ´ÊÍ·Å×ÜÏß
+ */
+static void I2C_BusRecover(void) {
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    HAL_I2C_DeInit(&hi2c1);
+
+    /* Temporarily switch to GPIO to release the bus. */
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    GPIO_InitStruct.Pin = MPU_SCL_Pin | MPU_SDA_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(MPU_SCL_GPIO_Port, MPU_SCL_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(MPU_SDA_GPIO_Port, MPU_SDA_Pin, GPIO_PIN_SET);
+    delay_us(5);
+
+    /* Clock out 9 pulses to free any stuck slave. */
+    for (uint8_t i = 0; i < 9; i++) {
+        HAL_GPIO_WritePin(MPU_SCL_GPIO_Port, MPU_SCL_Pin, GPIO_PIN_RESET);
+        delay_us(5);
+        HAL_GPIO_WritePin(MPU_SCL_GPIO_Port, MPU_SCL_Pin, GPIO_PIN_SET);
+        delay_us(5);
+    }
+
+    /* Send a STOP condition: SDA low -> SCL high -> SDA high. */
+    HAL_GPIO_WritePin(MPU_SDA_GPIO_Port, MPU_SDA_Pin, GPIO_PIN_RESET);
+    delay_us(5);
+    HAL_GPIO_WritePin(MPU_SCL_GPIO_Port, MPU_SCL_Pin, GPIO_PIN_SET);
+    delay_us(5);
+    HAL_GPIO_WritePin(MPU_SDA_GPIO_Port, MPU_SDA_Pin, GPIO_PIN_SET);
+    delay_us(5);
+
+    HAL_I2C_Init(&hi2c1);
+    delay_ms(2);
+}
+
 static void MPU_GetAccGyro(void) {
     (void)HAL_I2C_Mem_Read_DMA(&hi2c1, MPU_ADDR, MPU_ACCEL_XOUTH_REG, MPU_REG_ADDR_SIZE,
                                ImuBuf[CurIndex], FRAME_LEN);
 }
 //**************************************************************
-/* åˆå§‹åŒ–MPU6050 */
+/* ³õÊ¼»¯MPU6050 */
 HAL_StatusTypeDef MPU6050_Init(void) {
     HAL_StatusTypeDef res = HAL_OK;
     uint8_t who = 0;
 
     do {
-        res = MPU6050_WriteReg(MPU_PWR_MGMT1_REG, 0x80); /* å¤ä½å”¤é†’ï¼Œå¤±èƒ½æ¸©åº¦ */
-        /* é‡‡æ ·ç‡ = Gyroè¾“å‡ºç‡ / (1 + SMPLRT_DIV) */
-        res |= MPU6050_WriteReg(MPU_SAMPLE_RATE_REG, 0x02); /* â‰ˆ333 Hz */
-        res |= MPU6050_WriteReg(MPU_PWR_MGMT1_REG, 0x03);   /* æ—¶é’Ÿæº Gyro Z */
+        res = MPU6050_WriteReg(MPU_PWR_MGMT1_REG, 0x80); /* ¸´Î»»½ĞÑ£¬Ê§ÄÜÎÂ¶È */
+        /* ²ÉÑùÂÊ = GyroÊä³öÂÊ / (1 + SMPLRT_DIV) */
+        res |= MPU6050_WriteReg(MPU_SAMPLE_RATE_REG, 0x02); /* ¡Ö333 Hz */
+        res |= MPU6050_WriteReg(MPU_PWR_MGMT1_REG, 0x03);   /* Ê±ÖÓÔ´ Gyro Z */
         res |= MPU6050_WriteReg(MPU_CFG_REG, 0x03);         /* DLPF 42 Hz */
-        res |= MPU6050_WriteReg(MPU_GYRO_CFG_REG, 0x18);    /* Â±2000 dps */
-        res |= MPU6050_WriteReg(MPU_ACCEL_CFG_REG, 0x09);   /* Â±4 gï¼ŒLPF 5 Hz */
+        res |= MPU6050_WriteReg(MPU_GYRO_CFG_REG, 0x18);    /* ¡À2000 dps */
+        res |= MPU6050_WriteReg(MPU_ACCEL_CFG_REG, 0x09);   /* ¡À4 g£¬LPF 5 Hz */
+        if (res != HAL_OK) I2C_BusRecover();
     } while (res != HAL_OK);
 
     res = MPU6050_ReadRegs(MPU_WHO_AM_I, &who, 1);
 
-    /* ä»Flashè¯»å–é›¶å*/
+    /* ´ÓFlash¶ÁÈ¡ÁãÆ«*/
     // MpuOffset_Read(MpuOffset);
 
-    /* è‡ªåŠ¨å¼€å§‹ä¸€æ¬¡DMAé‡‡æ ·ï¼ˆåŒç¼“å†²ï¼‰ */
+    /* ×Ô¶¯¿ªÊ¼Ò»´ÎDMA²ÉÑù£¨Ë«»º³å£© */
     if (res == HAL_OK && who == MPU_ID) {
-        /* å¯åŠ¨è¿ç»­DMAé‡‡æ · */
-        /* ç¬¬ä¸€æ¬¡å¯åŠ¨åœ¨ç´¢å¼• CurIndex=0 çš„ç¼“å†²åŒº */
+        /* Æô¶¯Á¬ĞøDMA²ÉÑù */
+        /* µÚÒ»´ÎÆô¶¯ÔÚË÷Òı CurIndex=0 µÄ»º³åÇø */
         MPU_GetAccGyro();
     }
 
     return (res == HAL_OK && who == MPU_ID) ? HAL_OK : HAL_ERROR;
 }
 
-/* è¿ç»­é‡‡æ ·ï¼šDMAå®Œæˆå›è°ƒé‡Œç¿»è½¬ç¼“å†²å¹¶ç»­ä¼    */
+/* Á¬Ğø²ÉÑù£ºDMAÍê³É»Øµ÷Àï·­×ª»º³å²¢Ğø´«   */
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef* Hi2c) {
     if (Hi2c->Instance != I2C1) return;
     FrameSeq++;
     HasFrame = 1;
-    CurIndex ^= 1U; /* åˆ‡æ¢åˆ°å¦ä¸€å—ç¼“å†²å†™å…¥ä¸‹ä¸€å¸§ */
+    CurIndex ^= 1U; /* ÇĞ»»µ½ÁíÒ»¿é»º³åĞ´ÈëÏÂÒ»Ö¡ */
     MPU_GetAccGyro();
 }
 
-/* é”™è¯¯è‡ªæ¢å¤ï¼Œé¿å…æ€»çº¿å¡æ­»ååœæ­¢é‡‡æ ·  */
+/* ´íÎó×Ô»Ö¸´£¬±ÜÃâ×ÜÏß¿¨ËÀºóÍ£Ö¹²ÉÑù  */
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef* Hi2c) {
     if (Hi2c->Instance != I2C1) return;
     HAL_I2C_DeInit(Hi2c);
@@ -82,39 +127,39 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef* Hi2c) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* å°†æœ€è¿‘å®Œæˆçš„ä¸€å¸§è§£æå¹¶å†™å…¥å…¨å±€ç»“æ„ä½“ MPU6050                                     */
+/* ½«×î½üÍê³ÉµÄÒ»Ö¡½âÎö²¢Ğ´ÈëÈ«¾Ö½á¹¹Ìå MPU6050                                     */
 /* -------------------------------------------------------------------------- */
 HAL_StatusTypeDef MPU_GetData(void) {
     if (!HasFrame) return HAL_BUSY;
 
-    /* å–â€œä¸Šä¸€å—â€å®Œæˆçš„ç¼“å†²ï¼ˆå½“å‰ CurIndex æ­£åœ¨DMAå†™å…¥ï¼‰ */
+    /* È¡¡°ÉÏÒ»¿é¡±Íê³ÉµÄ»º³å£¨µ±Ç° CurIndex ÕıÔÚDMAĞ´Èë£© */
     uint8_t ReadyIndex, i;
     __disable_irq();
     ReadyIndex = CurIndex ^ 1U;
     __enable_irq();
 
     uint8_t buf[FRAME_LEN];
-    /* å¿«æ‹·è´14å­—èŠ‚åˆ°æ ˆä¸Šï¼Œé¿å…è¢«DMAè¦†ç›– */
+    /* ¿ì¿½±´14×Ö½Úµ½Õ»ÉÏ£¬±ÜÃâ±»DMA¸²¸Ç */
     __disable_irq();
     memcpy(buf, ImuBuf[ReadyIndex], FRAME_LEN);
     __enable_irq();
 
     for (i = 0; i < 7; i++) {
-        if (i < 3)  //ä»¥ä¸‹å¯¹åŠ é€Ÿåº¦åšå¡å°”æ›¼æ»¤æ³¢
+        if (i < 3)  //ÒÔÏÂ¶Ô¼ÓËÙ¶È×ö¿¨¶ûÂüÂË²¨
         {
-            mpu[i] = (((int16_t)buf[i << 1] << 8) | buf[(i << 1) + 1]) - MpuOffset[i];  //æ•´åˆä¸º16bitï¼Œå¹¶å‡å»æ°´å¹³é™æ­¢æ ¡å‡†å€¼
+            mpu[i] = (((int16_t)buf[i << 1] << 8) | buf[(i << 1) + 1]) - MpuOffset[i];  //ÕûºÏÎª16bit£¬²¢¼õÈ¥Ë®Æ½¾²Ö¹Ğ£×¼Öµ
 
             static struct _1_ekf_filter ekf[3] = {{0.02, 0, 0, 0, 0.001, 0.543},
                                                   {0.02, 0, 0, 0, 0.001, 0.543},
                                                   {0.02, 0, 0, 0, 0.001, 0.543}};
-            kalman_1(&ekf[i], (float)mpu[i]);  //ä¸€ç»´å¡å°”æ›¼
+            kalman_1(&ekf[i], (float)mpu[i]);  //Ò»Î¬¿¨¶ûÂü
             mpu[i] = (int16_t)ekf[i].out;
 
-        } else if (i >= 4)  //ä»¥ä¸‹å¯¹è§’é€Ÿåº¦åšä¸€é˜¶ä½é€šæ»¤æ³¢ï¼Œè·³è¿‡æ¸©åº¦
+        } else if (i >= 4)  //ÒÔÏÂ¶Ô½ÇËÙ¶È×öÒ»½×µÍÍ¨ÂË²¨£¬Ìø¹ıÎÂ¶È
         {
-            mpu[i - 1] = (((int16_t)buf[i << 1] << 8) | buf[(i << 1) + 1]) - MpuOffset[i - 1];  //æ•´åˆä¸º16bitï¼Œå¹¶å‡å»æ°´å¹³é™æ­¢æ ¡å‡†å€¼
+            mpu[i - 1] = (((int16_t)buf[i << 1] << 8) | buf[(i << 1) + 1]) - MpuOffset[i - 1];  //ÕûºÏÎª16bit£¬²¢¼õÈ¥Ë®Æ½¾²Ö¹Ğ£×¼Öµ
             uint8_t k = i - 4;
-            const float factor = 0.15f;  //æ»¤æ³¢å› ç´ 
+            const float factor = 0.15f;  //ÂË²¨ÒòËØ
             static float tBuff[3];
 
             mpu[i - 1] = tBuff[k] = tBuff[k] * (1 - factor) + mpu[i - 1] * factor;
@@ -124,7 +169,7 @@ HAL_StatusTypeDef MPU_GetData(void) {
     return HAL_OK;
 }
 
-void MPU_SetOffset(void) {  //æ ¡å‡†
+void MPU_SetOffset(void) {  //Ğ£×¼
 
     int32_t buffer[6] = {0};
     int16_t i;
@@ -139,7 +184,7 @@ void MPU_SetOffset(void) {  //æ ¡å‡†
     memset(MpuOffset, 0, sizeof(MpuOffset));
     MpuOffset[2] = 8192;  //set offset from the 8192
 
-    while (k--)  //30æ¬¡é™æ­¢åˆ™åˆ¤å®šé£è¡Œå™¨å¤„äºé™æ­¢çŠ¶æ€
+    while (k--)  //30´Î¾²Ö¹ÔòÅĞ¶¨·ÉĞĞÆ÷´¦ÓÚ¾²Ö¹×´Ì¬
     {
         do {
             delay_ms(10);
@@ -148,15 +193,15 @@ void MPU_SetOffset(void) {  //æ ¡å‡†
                 ErrorGyro[i] = mpu[i + 3] - LastGyro[i];
                 LastGyro[i] = mpu[i + 3];
             }
-        } while ((ErrorGyro[0] > MAX_GYRO_QUIET) || (ErrorGyro[0] < MIN_GYRO_QUIET)  //æ ‡å®šé™æ­¢
+        } while ((ErrorGyro[0] > MAX_GYRO_QUIET) || (ErrorGyro[0] < MIN_GYRO_QUIET)  //±ê¶¨¾²Ö¹
                  || (ErrorGyro[1] > MAX_GYRO_QUIET) || (ErrorGyro[1] < MIN_GYRO_QUIET) || (ErrorGyro[2] > MAX_GYRO_QUIET) || (ErrorGyro[2] < MIN_GYRO_QUIET));
     }
 
     /*           throw first 100  group data and make 256 group average as offset                    */
-    for (i = 0; i < 356; i++)  //æ°´å¹³æ ¡å‡†
+    for (i = 0; i < 356; i++)  //Ë®Æ½Ğ£×¼
     {
         MPU_GetData();
-        if (100 <= i)  //å–256ç»„æ•°æ®è¿›è¡Œå¹³å‡
+        if (100 <= i)  //È¡256×éÊı¾İ½øĞĞÆ½¾ù
         {
             uint8_t k;
             for (k = 0; k < 6; k++) {
@@ -166,7 +211,7 @@ void MPU_SetOffset(void) {  //æ ¡å‡†
     }
 
     for (i = 0; i < 6; i++) {
-        MpuOffset[i] = buffer[i] >> 8;  // å³ç§»8ä½ï¼Œç›¸å½“äºé™¤ä»¥256ï¼Œå¾—åˆ°å¹³å‡åç§»å€¼
+        MpuOffset[i] = buffer[i] >> 8;  // ÓÒÒÆ8Î»£¬Ïàµ±ÓÚ³ıÒÔ256£¬µÃµ½Æ½¾ùÆ«ÒÆÖµ
     }
     MpuOffset_Write(MpuOffset);
 }

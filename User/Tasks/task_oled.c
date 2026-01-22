@@ -1,5 +1,5 @@
-#include "task_shared.h"
 #include "OLED.h"
+#include "task_shared.h"
 
 /* OLED任务配置 */
 #define OLED_STACK_SIZE 512
@@ -14,7 +14,6 @@ static void oled_entry(void* arg) {
     for (;;) {
         /* 等待一次触发（计数信号量：每次give对应一次take） */
         if (g_oled_sem != NULL && xSemaphoreTake(g_oled_sem, portMAX_DELAY) == pdTRUE) {
-
             /* 取出触发来源：推荐触发方使用 OLED_Trigger(src)；
              * 若仍有人直接give信号量而不发队列，这里可能取不到src。 */
             oled_src_t src = OLED_SRC_UNKNOWN;
@@ -28,10 +27,14 @@ static void oled_entry(void* arg) {
                     OLED_Printf(0, 0, OLED_6X8, "LED TASK Running");
                     break;
                 case OLED_SRC_USB:
-                    OLED_Printf(0, 12, OLED_6X8, "USB TASK Running");
+                    OLED_Printf(0, 8, OLED_6X8, "USB TASK Running");
+                    break;
+                case OLED_SRC_MPU:
+                    OLED_Printf(0, 16, OLED_6X8, "MPU6050 TASK Running");
+                    OLED_Printf(0, 24, OLED_6X8, "ax,ay,az:%04d,%04d,%04d", g_mpu6050_data.accX, g_mpu6050_data.accY, g_mpu6050_data.accZ);
                     break;
                 default:
-                    OLED_Printf(0, 24, OLED_6X8, "UNKNOWN");
+                    // OLED_Printf(0, 24, OLED_6X8, "UNKNOWN");
                     break;
             }
             OLED_Update();

@@ -11,5 +11,6 @@
 #include "OLED.h"
 #include "task_shared.h"
 #include "Motor.h"
+#include "MPU6050.h"
 
 #endif  // !__ALL_USER_DEFINE_H

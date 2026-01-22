@@ -100,10 +100,10 @@ void Error_Handler(void);
 #define MPU6050_INT_Pin GPIO_PIN_5
 #define MPU6050_INT_GPIO_Port GPIOB
 #define MPU6050_INT_EXTI_IRQn EXTI9_5_IRQn
-#define I2C1_SCL_Pin GPIO_PIN_6
-#define I2C1_SCL_GPIO_Port GPIOB
-#define I2C1_SDA_Pin GPIO_PIN_7
-#define I2C1_SDA_GPIO_Port GPIOB
+#define MPU_SCL_Pin GPIO_PIN_6
+#define MPU_SCL_GPIO_Port GPIOB
+#define MPU_SDA_Pin GPIO_PIN_7
+#define MPU_SDA_GPIO_Port GPIOB
 #define OLED_SCL_Pin GPIO_PIN_8
 #define OLED_SCL_GPIO_Port GPIOB
 #define OLED_SDA_Pin GPIO_PIN_9

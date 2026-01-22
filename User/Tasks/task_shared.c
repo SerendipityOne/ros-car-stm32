@@ -10,10 +10,13 @@
 #define OLED_SEM_MAX     16
 
 /* ===================== 共享RTOS对象定义 ===================== */
+// 信号量
+SemaphoreHandle_t g_oled_sem = NULL;   // OLED信号量
+SemaphoreHandle_t g_mpu_mutex = NULL;  // MPU锁
 
-/* OLED任务共享信号量（计数信号量：避免多次触发被二值信号量吞掉） */
-SemaphoreHandle_t g_oled_sem = NULL;
-static StaticSemaphore_t oled_sem_buf;
+// 静态缓冲区
+static StaticSemaphore_t oled_sem_buf;     // OLED信号量静态缓冲区
+static StaticSemaphore_t g_mpu_mutex_buf;  //	MPU锁静态缓冲区
 
 /* OLED事件队列（用于携带触发来源src） */
 QueueHandle_t g_oled_evt_q = NULL;
@@ -24,16 +27,17 @@ static StackType_t start_stack[START_STACK_SIZE];  // 任务栈
 static StaticTask_t start_tcb;                     // 任务控制块
 
 static void Task_CreateRtosObjects(void) {
-    /* 1) 创建OLED事件队列（先建队列，触发API会往里塞src） */
+    /* 创建OLED事件队列（先建队列，触发API会往里塞src） */
     g_oled_evt_q = xQueueCreateStatic(
         OLED_EVT_Q_LEN,
         sizeof(oled_src_t),
         oled_evt_q_storage,
-        &oled_evt_q_buf
-    );
+        &oled_evt_q_buf);
 
-    /* 2) 创建OLED计数信号量：一个触发对应一次take */
+    /* 创建OLED计数信号量：一个触发对应一次take */
     g_oled_sem = xSemaphoreCreateCountingStatic(OLED_SEM_MAX, 0, &oled_sem_buf);
+    /* 创建MPU6050数据互斥量 */
+    g_mpu_mutex = xSemaphoreCreateMutexStatic(&g_mpu_mutex_buf);
 }
 
 /* ===================== OLED触发API实现 ===================== */
@@ -64,7 +68,7 @@ void OLED_Trigger(oled_src_t src) {
  * @param src 触发来源
  * @param pxHigherPriorityTaskWoken 传入给FreeRTOS的woken指针
  */
-void OLED_TriggerFromISR(oled_src_t src, BaseType_t *pxHigherPriorityTaskWoken) {
+void OLED_TriggerFromISR(oled_src_t src, BaseType_t* pxHigherPriorityTaskWoken) {
     if (g_oled_evt_q != NULL) {
         if (xQueueSendFromISR(g_oled_evt_q, &src, pxHigherPriorityTaskWoken) != pdPASS) {
             oled_src_t dump;
@@ -88,9 +92,10 @@ static void start_entry(void* arg) {
 
     Task_CreateRtosObjects();
 
-    OLED_TaskCreate();
-    LED_TaskCreate();
+    OLED_TaskCreate();      // 启动OLED
+    LED_TaskCreate();       // 启动LED
     UsbProto_TaskCreate();  // 启动USB
+    MPU6050_TaskCreate();   // 启动MPU6050
 
     vTaskDelete(NULL);
 }
