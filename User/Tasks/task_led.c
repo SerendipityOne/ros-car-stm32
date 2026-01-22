@@ -11,6 +11,7 @@
 static void LED_Task(void* pvParameters) {
     // 初始化LED
     LED_Init();
+	xSemaphoreGive(g_oled_sem);
 
     // 无限循环
     while (1) {

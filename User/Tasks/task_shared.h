@@ -2,6 +2,7 @@
 #define TASK_SHARED_H
 
 #include <stdint.h>
+#include "main.h"
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "semphr.h"
@@ -20,6 +21,12 @@ void OLED_TaskCreate(void);
 void LED_TaskCreate(void);
 
 /* ===================== 共享状态变量 ===================== */
+
+/* OLED任务共享信号量：
+ * 其他任务/中断通过 xSemaphoreGive(g_oled_sem) 触发OLED任务执行一次显示。
+ * 注意：OLED任务在创建后会一直阻塞等待该信号量。
+ */
+extern SemaphoreHandle_t g_oled_sem;
 
 /* ===================== LED任务接口 ===================== */
 

@@ -10,6 +10,6 @@
 #include "usb_proto.h"
 #include "OLED.h"
 #include "task_shared.h"
-
+#include "Motor.h"
 
 #endif  // !__ALL_USER_DEFINE_H

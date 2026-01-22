@@ -15,4 +15,5 @@ int16_t motor_pwm_value[4];
 
 void ALL_Init(void) {
     OLED_Init();
+    Motor_Init();
 }
