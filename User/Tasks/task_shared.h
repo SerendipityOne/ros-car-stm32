@@ -4,12 +4,13 @@
 #include <stdint.h>
 #include "main.h"
 #include "FreeRTOS.h"
+#include "task.h"
 #include "queue.h"
 #include "semphr.h"
 
 /**
  * @brief 创建启动任务（唯一入口）
- * 
+ *
  * 启动任务负责：
  * 1. 创建所有工作任务
  * 2. 完成后删除自己
@@ -20,14 +21,34 @@ void START_TaskCreate(void);
 void OLED_TaskCreate(void);
 void LED_TaskCreate(void);
 
-/* ===================== 共享状态变量 ===================== */
+/**
+ * @brief OLED触发来源（用于OLED任务区分是谁触发了刷新）
+ *
+ * 说明：
+ * - FreeRTOS 的信号量本身不携带“是谁give的”信息。
+ * - 因此这里用一个队列传递 src，同时仍保留信号量用于唤醒OLED任务（兼容旧代码）。
+ */
+typedef enum {
+    OLED_SRC_UNKNOWN = 0,
+    OLED_SRC_LED     = 1,
+    OLED_SRC_USB     = 2,
+} oled_src_t;
+
+/* ===================== 共享RTOS对象 ===================== */
 
 /* OLED任务共享信号量：
- * 其他任务/中断通过 xSemaphoreGive(g_oled_sem) 触发OLED任务执行一次显示。
- * 注意：OLED任务在创建后会一直阻塞等待该信号量。
+ * - 其他任务通过 xSemaphoreGive(g_oled_sem) 触发OLED任务执行一次显示（兼容旧代码）
+ * - 推荐使用 OLED_Trigger(src) 来触发，这样OLED任务可以知道触发来源
  */
 extern SemaphoreHandle_t g_oled_sem;
 
-/* ===================== LED任务接口 ===================== */
+/* OLED事件队列：用于携带触发来源 src（一个触发对应队列里一个src） */
+extern QueueHandle_t g_oled_evt_q;
+
+/* ===================== OLED触发API（推荐使用） ===================== */
+
+void OLED_Trigger(oled_src_t src);
+
+void OLED_TriggerFromISR(oled_src_t src, BaseType_t *pxHigherPriorityTaskWoken);
 
 #endif

@@ -229,7 +229,7 @@ static void UsbProto_TxTask(void* arg) {
 
     TxItem item;                  // 发送项
     uint8_t frame[TX_FRAME_MAX];  // 存储待发送的帧
-
+	OLED_Trigger(OLED_SRC_USB);
     for (;;) {
         // 从发送队列接收数据，阻塞等待直到有数据可用
         if (xQueueReceive(s_txq, &item, portMAX_DELAY) != pdTRUE) continue;
@@ -281,6 +281,8 @@ void UsbProto_TaskCreate(void) {
         s_rx_wakeup_pending = 0;
         xTaskNotifyGive(s_rx_task);
     }
+	OLED_Trigger(OLED_SRC_USB);
+	
 }
 
 // 从USB中断接收字节数据
